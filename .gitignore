@@ -36,3 +36,8 @@ ENV/
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Data sets
+data/*.jsonl
+data/*.zst
+data/processed/*.pt
