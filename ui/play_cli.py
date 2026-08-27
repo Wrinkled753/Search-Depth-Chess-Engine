@@ -1,4 +1,5 @@
 import sys
+import argparse
 from pathlib import Path
 
 # Add the project root to the python path so we can import engine
@@ -9,12 +10,13 @@ import chess
 from engine.board import EngineBoard
 from engine.engine import ChessEngine
 
-def play():
-    print("Welcome to ChessEngine-LLM CLI!")
+def play(use_nn: bool = False):
+    mode_str = "Neural Network" if use_nn else "Heuristic"
+    print(f"Welcome to ChessEngine-LLM CLI! (Eval mode: {mode_str})")
     print("You are playing White. Enter moves in UCI format (e.g., e2e4, g1f3).")
     
     board = EngineBoard()
-    engine = ChessEngine(depth=4)
+    engine = ChessEngine(depth=4, use_nn=use_nn)
     
     while not board.is_game_over():
         print("\n" + str(board._board))
@@ -47,4 +49,7 @@ def play():
     print("Result:", board._board.result())
 
 if __name__ == "__main__":
-    play()
+    parser = argparse.ArgumentParser(description="Play chess against ChessEngine-LLM")
+    parser.add_argument("--nn", action="store_true", help="Use neural network evaluation instead of heuristic")
+    args = parser.parse_args()
+    play(use_nn=args.nn)
