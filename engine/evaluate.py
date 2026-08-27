@@ -22,15 +22,12 @@ EXTENDED_CENTER = {
 
 def evaluate(board: EngineBoard) -> float:
     """
-    Evaluates the current board position.
+    Evaluates the current board position using hand-written heuristics.
     Returns a positive score if white is better, negative if black is better.
-    """
-    if board.is_checkmate():
-        # If it's checkmate, the side to move lost.
-        return -99999.0 if board.turn() == chess.WHITE else 99999.0
     
-    if board.is_stalemate() or board.is_game_over():
-        return 0.0
+    Note: Terminal state detection (checkmate, stalemate) is handled in
+    search.py, so this function only scores non-terminal positions.
+    """
 
     score = 0.0
     b = board._board  # Access the underlying python-chess board

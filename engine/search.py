@@ -1,17 +1,32 @@
 import chess
+from typing import Callable
 from engine.board import EngineBoard
-from engine.evaluate import evaluate
 
 # Infinity values for alpha-beta pruning
 INF = float('inf')
+MATE_SCORE = 99999.0
 
-def minimax(board: EngineBoard, depth: int, alpha: float, beta: float, maximizing_player: bool) -> tuple[float, chess.Move | None]:
+def minimax(board: EngineBoard, depth: int, alpha: float, beta: float, maximizing_player: bool, eval_fn: Callable[[EngineBoard], float]) -> tuple[float, chess.Move | None]:
     """
     Minimax search with alpha-beta pruning.
+    
+    The eval_fn parameter allows swapping evaluation backends
+    (heuristic vs neural network) without changing the search logic.
+    
+    Terminal state detection (checkmate, stalemate) is handled here,
+    so eval_fn only needs to score non-terminal positions.
+    
     Returns a tuple of (best_score, best_move).
     """
-    if depth == 0 or board.is_game_over():
-        return evaluate(board), None
+    # Terminal state checks — shared for ALL eval backends
+    if board.is_checkmate():
+        return (-MATE_SCORE if board.turn() == chess.WHITE else MATE_SCORE), None
+    if board.is_stalemate() or board.is_game_over():
+        return 0.0, None
+    
+    # Leaf node — delegate to the injected evaluation function
+    if depth == 0:
+        return eval_fn(board), None
 
     best_move = None
     
@@ -34,7 +49,7 @@ def minimax(board: EngineBoard, depth: int, alpha: float, beta: float, maximizin
         max_eval = -INF
         for move in legal_moves:
             board.push(move)
-            eval_score, _ = minimax(board, depth - 1, alpha, beta, False)
+            eval_score, _ = minimax(board, depth - 1, alpha, beta, False, eval_fn)
             board.pop()
             
             if eval_score > max_eval:
@@ -51,7 +66,7 @@ def minimax(board: EngineBoard, depth: int, alpha: float, beta: float, maximizin
         min_eval = INF
         for move in legal_moves:
             board.push(move)
-            eval_score, _ = minimax(board, depth - 1, alpha, beta, True)
+            eval_score, _ = minimax(board, depth - 1, alpha, beta, True, eval_fn)
             board.pop()
             
             if eval_score < min_eval:
