@@ -16,7 +16,7 @@ def play(use_nn: bool = False):
     print("You are playing White. Enter moves in UCI format (e.g., e2e4, g1f3).")
     
     board = EngineBoard()
-    engine = ChessEngine(depth=4, use_nn=use_nn)
+    engine = ChessEngine(max_depth=64, time_limit=5.0, use_nn=use_nn)
     
     while not board.is_game_over():
         print("\n" + str(board._board))

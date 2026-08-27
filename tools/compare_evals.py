@@ -70,8 +70,8 @@ def run_comparison(num_games: int = 10):
     print(f"Games: {num_games} | Depth: {SEARCH_DEPTH} | Max moves/game: {MAX_MOVES_PER_GAME}")
     print()
     
-    heuristic_engine = ChessEngine(depth=SEARCH_DEPTH, use_nn=False)
-    nn_engine = ChessEngine(depth=SEARCH_DEPTH, use_nn=True)
+    heuristic_engine = ChessEngine(max_depth=SEARCH_DEPTH, time_limit=30.0, use_nn=False)
+    nn_engine = ChessEngine(max_depth=SEARCH_DEPTH, time_limit=30.0, use_nn=True)
     
     # Track results from the NN engine's perspective
     nn_wins = 0

@@ -1,5 +1,6 @@
 import chess
 import chess.pgn
+import chess.polyglot
 import io
 from typing import Iterator, Optional
 
@@ -117,3 +118,11 @@ class EngineBoard:
         chess.WHITE (True) or chess.BLACK (False).
         """
         return self._board.turn
+
+    def zobrist_hash(self) -> int:
+        """
+        Return the Zobrist hash of the current board state.
+        Used for transposition table lookups.
+        """
+        return chess.polyglot.zobrist_hash(self._board)
+
