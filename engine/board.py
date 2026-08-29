@@ -126,3 +126,9 @@ class EngineBoard:
         """
         return chess.polyglot.zobrist_hash(self._board)
 
+    def fen(self) -> str:
+        """
+        Return the FEN representation of the current board state.
+        """
+        return self._board.fen()
+

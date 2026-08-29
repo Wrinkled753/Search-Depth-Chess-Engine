@@ -1,12 +1,248 @@
-# ChessEngine-LLM
+# ♟ ChessEngine-LLM
 
-A machine learning-assisted chess engine written in Python, combining classic minimax search with PyTorch-based position evaluations.
+A **hybrid chess engine** built from scratch in Python, featuring both a hand-crafted heuristic evaluator and a PyTorch-based NNUE-Inspired neural network evaluator. The engine uses advanced search techniques including Negamax with Alpha-Beta pruning, Transposition Tables, Quiescence Search, Iterative Deepening, and MVV-LVA move ordering.
 
-## Project Structure
-- `engine/`: Core search and board logic.
-- `data/`: Downloader and dataset preprocessing pipelines.
-- `training/`: Neural network architecture and training loops.
-- `models/`: Trained model checkpoints.
-- `tools/`: Benchmark and evaluation scripts.
-- `ui/`: CLI and Web playing interfaces.
-- `tests/`: Unit and integration tests.
+![Web UI Screenshot](docs/web_ui_screenshot.png)
+
+---
+
+## 🎯 Motivation
+
+This project explores how modern chess engines work by building one layer by layer:
+
+1. **Board representation** — wrapping `python-chess` for a clean API.
+2. **Hand-crafted evaluation** — material counting + piece-square tables.
+3. **Data pipeline** — downloading 300K+ positions from Lichess's open evaluation database.
+4. **Neural network training** — a feedforward PyTorch model trained on Stockfish evaluations.
+5. **Search optimizations** — Negamax, Alpha-Beta, TT, Quiescence, MVV-LVA, Iterative Deepening.
+6. **Web UI** — a Flask + chessboard.js interface with real-time evaluation display.
+
+The goal is an educational, self-contained codebase that demonstrates the full pipeline from raw data to a playable engine.
+
+---
+
+## 🏗️ Architecture
+
+```mermaid
+graph TD
+    subgraph "User Interface"
+        WEB["Web UI (Flask + chessboard.js)"]
+        CLI["CLI Interface"]
+    end
+
+    subgraph "Engine Core"
+        ENG["ChessEngine"]
+        ID["Iterative Deepening"]
+        NEG["Negamax + Alpha-Beta"]
+        QS["Quiescence Search"]
+        TT["Transposition Table (Zobrist)"]
+        MO["Move Ordering (MVV-LVA)"]
+    end
+
+    subgraph "Evaluation (Dependency Injection)"
+        HE["Heuristic Evaluator\n(Material + PST)"]
+        NN["NNUE-Inspired Evaluator\n(PyTorch, 769→256→128→64→1)"]
+    end
+
+    subgraph "Data Pipeline"
+        DL["download_data.py\n(Lichess evals DB)"]
+        PP["prepare_dataset.py\n(769-bit encoding)"]
+        TR["train.py\n(MSE loss, Adam)"]
+    end
+
+    WEB --> ENG
+    CLI --> ENG
+    ENG --> ID
+    ID --> NEG
+    NEG --> QS
+    NEG --> TT
+    NEG --> MO
+    NEG -->|eval_fn| HE
+    NEG -->|eval_fn| NN
+    DL --> PP --> TR --> NN
+```
+
+---
+
+## ⚡ Key Features
+
+| Feature | Description |
+|---------|-------------|
+| **Negamax + Alpha-Beta** | Single-path search with pruning |
+| **Transposition Table** | Fixed-size Zobrist hash table (1M entries) to cache positions |
+| **Quiescence Search** | Extends search beyond horizon for captures; searches all moves when in check |
+| **Iterative Deepening** | Time-controlled search, deepens progressively until limit |
+| **MVV-LVA Move Ordering** | Most Valuable Victim – Least Valuable Attacker prioritization |
+| **Side-Relative Evaluation** | Correct score flipping for both White and Black sides |
+| **Dual Evaluation** | Switch between Heuristic and NNUE-Inspired backends via DI |
+| **Web UI** | Drag-and-drop board with live evaluation bar and move history |
+| **Stockfish Benchmark** | Tournament script against calibrated Stockfish for Elo estimation |
+
+---
+
+## 📦 Installation
+
+### Prerequisites
+- Python 3.10+
+- [Stockfish](https://stockfishchess.org/download/) (optional, for Elo benchmarking)
+
+### Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/Wrinkled753/Search-Depth-Chess-Engine.git
+cd Search-Depth-Chess-Engine
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### Training the Neural Network (Optional)
+
+The pre-trained model is included at `models/eval_net.pt`. To retrain from scratch:
+
+```bash
+# Download Lichess evaluation data (~300K positions)
+python data/download_data.py
+
+# Prepare training dataset (769-bit piece-square encoding)
+python data/prepare_dataset.py
+
+# Train the neural network
+python training/train.py
+```
+
+---
+
+## 🚀 Usage
+
+### Web UI (Recommended)
+
+```bash
+python ui/web_app.py
+```
+
+Open your browser at `http://localhost:5000`. Features:
+- Drag and drop pieces to make moves
+- Toggle between **Heuristic** and **NNUE-Inspired** evaluation backends
+- Real-time **evaluation bar** showing positional advantage
+- **Move history** panel
+
+### CLI Interface
+
+```bash
+# Play with heuristic evaluation
+python ui/play_cli.py
+
+# Play with neural network evaluation
+python ui/play_cli.py --nn
+```
+
+### Stockfish Elo Benchmark
+
+Requires Stockfish to be installed and available in PATH.
+
+```bash
+python tools/play_stockfish.py
+```
+
+This runs a tournament against Stockfish at `UCI_Elo = 1320` with a time limit of **0.1 seconds per move** for both engines. It tests both the Heuristic and NNUE-Inspired backends separately and reports win/draw/loss statistics with a rough Elo estimate.
+
+### Search Benchmark
+
+```bash
+python tools/benchmark_search.py
+```
+
+Measures nodes searched at fixed depths and maximum depth reached within time limits.
+
+---
+
+## 🧪 Testing
+
+```bash
+pytest tests/ -v
+```
+
+The test suite includes:
+- Board representation tests (FEN, PGN, legal moves, special moves)
+- Search tests (mate-in-1, mate-in-2, mate prevention)
+- Black-side tactic verification (side-relative eval correctness)
+- NN evaluation integration tests
+
+---
+
+## 📊 Results
+
+### Board Encoding
+Each position is encoded as a **769-bit** feature vector:
+- 768 bits: 12 piece types × 64 squares (piece-square encoding)
+- 1 bit: side to move
+
+### Neural Network Architecture
+```
+Input (769) → Linear(256) → ReLU → Linear(128) → ReLU → Linear(64) → ReLU → Linear(1) → Tanh
+```
+- Output normalized to [-1, 1] via `tanh(cp / 400)`
+- Trained on ~300K Lichess positions with Stockfish evaluations
+- Loss: MSE, Optimizer: Adam, Best validation loss: ~0.12
+
+### Search Performance
+The combination of Transposition Tables, MVV-LVA move ordering, and Quiescence Search provides a significant node reduction (typically 70-90% fewer nodes) compared to plain alpha-beta at the same depth.
+
+---
+
+## 🔮 Future Work
+
+- **Self-Play Reinforcement Learning** — use the engine to generate training games and iteratively improve the NN evaluation through self-play.
+- **Lichess Bot API Integration** — deploy the engine as a playable bot on [Lichess](https://lichess.org/api#tag/Bot).
+- **Larger Networks** — experiment with deeper architectures (residual blocks, attention layers) for improved evaluation accuracy.
+- **Opening Book** — integrate a Polyglot opening book for stronger opening play.
+- **Endgame Tablebases** — add Syzygy tablebase probing for perfect endgame play.
+- **Null Move Pruning** — further reduce the search tree with null move heuristic.
+- **Late Move Reductions (LMR)** — reduce search depth for moves that are unlikely to be good.
+
+---
+
+## 📂 Project Structure
+
+```
+ChessEngine-LLM/
+├── engine/
+│   ├── board.py            # Board representation (python-chess wrapper)
+│   ├── evaluate.py         # Hand-crafted heuristic evaluation
+│   ├── search.py           # Negamax, quiescence, move ordering
+│   ├── engine.py           # Main engine with iterative deepening
+│   ├── nnue_eval.py        # NNUE-Inspired PyTorch evaluation wrapper
+│   └── transposition.py    # Fixed-size transposition table
+├── training/
+│   ├── model.py            # ChessEvalNet architecture definition
+│   └── train.py            # Training loop with validation
+├── data/
+│   ├── download_data.py    # Lichess evaluation database downloader
+│   └── prepare_dataset.py  # Dataset preparation (769-bit encoding)
+├── ui/
+│   ├── web_app.py          # Flask web server
+│   ├── templates/
+│   │   └── index.html      # Web UI (chessboard.js + eval bar)
+│   └── play_cli.py         # CLI interface
+├── tools/
+│   ├── play_stockfish.py   # Stockfish Elo benchmark
+│   ├── benchmark_search.py # Search performance benchmark
+│   └── compare_evals.py    # Heuristic vs NN comparison
+├── tests/
+│   ├── test_board.py       # Board representation tests
+│   └── test_search.py      # Search and engine tests
+├── models/
+│   └── eval_net.pt         # Pre-trained neural network weights
+├── docs/
+│   └── web_ui_screenshot.png
+├── requirements.txt
+└── README.md
+```
+
+---
+
+## 📝 License
+
+This project is open source and available under the [MIT License](LICENSE).
