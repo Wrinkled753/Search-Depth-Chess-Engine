@@ -358,6 +358,7 @@
     var isEngineThinking = false;
     var isGameOver = false;
     var moveList = [];
+    var currentSessionId = 0;
     var $status = $('#statusBox');
     
     function pieceTheme(piece) {
@@ -491,6 +492,8 @@
 
         isEngineThinking = true;
         $status.html('Engine is thinking… <div class="loader" style="display:inline-block;margin-bottom:-3px"></div>');
+        
+        var mySessionId = currentSessionId;
 
         $.ajax({
             type: 'POST',
@@ -498,6 +501,8 @@
             contentType: 'application/json',
             data: JSON.stringify({ source: source, target: target, use_nn: useNN }),
             success: function(r) {
+                if (mySessionId !== currentSessionId) return; // Abort if game was reset
+                
                 isEngineThinking = false;
                 if (r.error) {
                     $status.text('Illegal move! Try again.');
@@ -526,6 +531,7 @@
                 handleStatus(r.status);
             },
             error: function() {
+                if (mySessionId !== currentSessionId) return;
                 isEngineThinking = false;
                 $status.text('Server error.');
             }
@@ -536,9 +542,12 @@
 
     // ─── New Game ───
     $('#newGameBtn').click(function() {
+        currentSessionId++; // Invalidate any pending engine moves
         $.ajax({
             type: 'POST',
             url: '/newgame',
+            contentType: 'application/json',
+            data: JSON.stringify({ use_nn: useNN }),
             success: function(data) {
                 clearGameOver();
                 board.position(data.fen, false);

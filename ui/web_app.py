@@ -103,7 +103,11 @@ def new_game():
     game_board = EngineBoard()
     engine.tt.clear()
     nn_engine.tt.clear()
-    eval_info = _get_eval_score(game_board, False)
+    
+    data = request.json or {}
+    use_nn = data.get("use_nn", False)
+    
+    eval_info = _get_eval_score(game_board, use_nn)
     return jsonify({"fen": game_board.fen(), "eval": eval_info, "status": _game_status(game_board)})
 
 
@@ -121,59 +125,62 @@ def switch_engine():
 @app.route("/move", methods=["POST"])
 def make_move():
     global game_board
+    # Capture the board locally to prevent race conditions if 'new_game' is called
+    board = game_board
+    
     data = request.json
     source = data.get("source")
     target = data.get("target")
     use_nn = data.get("use_nn", False)
 
     # Check if game is already over
-    if game_board.is_game_over():
-        return jsonify({"error": "Game is already over", "fen": game_board.fen(),
-                        "status": _game_status(game_board)})
+    if board.is_game_over():
+        return jsonify({"error": "Game is already over", "fen": board.fen(),
+                        "status": _game_status(board)})
 
     # Validate human move against legal moves
     uci_move = f"{source}{target}"
 
     # Guard against malformed input from chessboard.js (e.g. 'f1offboard')
     if len(uci_move) < 4 or len(uci_move) > 5:
-        return jsonify({"error": "Invalid move", "fen": game_board.fen()})
+        return jsonify({"error": "Invalid move", "fen": board.fen()})
 
     try:
         move = chess.Move.from_uci(uci_move)
     except chess.InvalidMoveError:
-        return jsonify({"error": "Invalid move", "fen": game_board.fen()})
+        return jsonify({"error": "Invalid move", "fen": board.fen()})
 
-    if move not in game_board.legal_moves():
+    if move not in board.legal_moves():
         # Try promotion to Queen (chessboard.js doesn't have promotion UI)
         try:
             move = chess.Move.from_uci(uci_move + "q")
         except chess.InvalidMoveError:
-            return jsonify({"error": "Invalid move", "fen": game_board.fen()})
-        if move not in game_board.legal_moves():
-            return jsonify({"error": "Invalid move", "fen": game_board.fen()})
+            return jsonify({"error": "Invalid move", "fen": board.fen()})
+        if move not in board.legal_moves():
+            return jsonify({"error": "Invalid move", "fen": board.fen()})
 
     # Apply human move
-    game_board.push(move)
+    board.push(move)
 
-    status = _game_status(game_board)
+    status = _game_status(board)
 
-    if game_board.is_game_over():
-        eval_info = _get_eval_score(game_board, use_nn)
-        return jsonify({"fen": game_board.fen(), "eval": eval_info, "status": status,
+    if board.is_game_over():
+        eval_info = _get_eval_score(board, use_nn)
+        return jsonify({"fen": board.fen(), "eval": eval_info, "status": status,
                         "engine_move": None})
 
     # Engine makes a move
     active_engine = nn_engine if use_nn else engine
-    best_move = active_engine.get_best_move(game_board)
+    best_move = active_engine.get_best_move(board)
 
     if best_move:
-        game_board.push(best_move)
+        board.push(best_move)
 
-    status = _game_status(game_board)
-    eval_info = _get_eval_score(game_board, use_nn)
+    status = _game_status(board)
+    eval_info = _get_eval_score(board, use_nn)
 
     return jsonify({
-        "fen": game_board.fen(),
+        "fen": board.fen(),
         "status": status,
         "engine_move": best_move.uci() if best_move else None,
         "eval": eval_info
