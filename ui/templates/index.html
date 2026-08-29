@@ -519,9 +519,8 @@
                 }
                 renderHistory();
 
-                // Update board — use position(fen, false) for instant update
-                // This correctly handles castling (both king+rook move at once)
-                board.position(r.fen, false);
+                // Update board WITH animation so engine moves smoothly
+                board.position(r.fen, true);
 
                 if (r.eval) updateEval(r.eval);
                 handleStatus(r.status);
@@ -531,9 +530,6 @@
                 $status.text('Server error.');
             }
         });
-
-        // Always snapback first — the AJAX callback will set the correct position
-        return 'snapback';
     }
 
     function onSnapEnd() { /* handled by AJAX */ }
