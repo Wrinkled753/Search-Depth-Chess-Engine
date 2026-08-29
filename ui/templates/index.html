@@ -270,6 +270,29 @@
         .move-history span.move-number { color: var(--text-muted); opacity: .6; }
         .move-history span.white-move  { color: var(--text); }
         .move-history span.black-move  { color: #cbd5e1; }
+
+        /* Game over overlay */
+        .game-over-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            border-radius: 10px;
+            backdrop-filter: blur(4px);
+        }
+        .game-over-text {
+            font-size: 22px;
+            font-weight: 700;
+            color: #F8FAFC;
+            text-align: center;
+            padding: 20px 32px;
+            background: rgba(99, 102, 241, 0.25);
+            border: 1px solid rgba(99, 102, 241, 0.5);
+            border-radius: 12px;
+        }
     </style>
 </head>
 <body>
@@ -307,13 +330,6 @@
                 </div>
             </div>
 
-            <div class="card">
-                <h3>Position Evaluation</h3>
-                <div class="eval-detail">
-                    <span class="eval-label">Advantage</span>
-                    <span class="eval-value neutral" id="evalValue">0.00</span>
-                </div>
-            </div>
 
             <div class="card">
                 <h3>Status</h3>
@@ -340,7 +356,8 @@
     var board = null;
     var useNN = false;
     var isEngineThinking = false;
-    var moveList = [];   // [{white:'e4', black:'e5'}, ...]
+    var isGameOver = false;
+    var moveList = [];
     var $status = $('#statusBox');
     
     function pieceTheme(piece) {
@@ -348,27 +365,71 @@
     }
 
     // ─── Eval display helpers ───
-    function updateEval(score) {
+    function updateEval(evalInfo) {
+        if (!evalInfo) return;
+
         var $barWhite = $('#evalBarWhite');
         var $barBlack = $('#evalBarBlack');
         var $barScore = $('#evalBarScore');
-        var $sideVal  = $('#evalValue');
 
-        // Clamp display to ±10 for the bar
-        var clamped = Math.max(-10, Math.min(10, score));
-        var whitePct = 50 + (clamped / 10) * 50;  // 0..100
-        $barWhite.css('height', whitePct + '%');
-        $barBlack.css('height', (100 - whitePct) + '%');
+        var score = evalInfo.score;
+        var mate  = evalInfo.mate;
+        var displayText;
 
-        var sign = score > 0 ? '+' : '';
-        var displayText = sign + score.toFixed(2);
+        if (mate !== null && mate !== undefined) {
+            // Mate score
+            if (mate === 0) {
+                displayText = '#';
+            } else {
+                displayText = 'M' + Math.abs(mate);
+            }
+            // Full bar towards the winning side
+            var whitePct = mate >= 0 ? 98 : 2;
+            $barWhite.css('height', whitePct + '%');
+            $barBlack.css('height', (100 - whitePct) + '%');
+            var cls = mate >= 0 ? 'positive' : 'negative';
+            $barScore.text(displayText).removeClass('positive negative neutral').addClass(cls);
+        } else {
+            // Normal pawn-unit score
+            // Clamp display to ±5 for the bar (Lichess-like)
+            var clamped = Math.max(-5, Math.min(5, score));
+            var whitePct = 50 + (clamped / 5) * 50;
+            $barWhite.css('height', whitePct + '%');
+            $barBlack.css('height', (100 - whitePct) + '%');
 
-        var cls = 'neutral';
-        if (score > 0.15)  cls = 'positive';
-        if (score < -0.15) cls = 'negative';
+            var sign = score > 0 ? '+' : '';
+            displayText = sign + score.toFixed(1);
 
-        $barScore.text(displayText).removeClass('positive negative neutral').addClass(cls);
-        $sideVal.text(displayText).removeClass('positive negative neutral').addClass(cls);
+            var cls = 'neutral';
+            if (score > 0.15)  cls = 'positive';
+            if (score < -0.15) cls = 'negative';
+
+            $barScore.text(displayText).removeClass('positive negative neutral').addClass(cls);
+        }
+    }
+
+    // ─── Game Over Overlay ───
+    function showGameOver(reason) {
+        isGameOver = true;
+        var $overlay = $('<div class="game-over-overlay"><div class="game-over-text">' + reason + '</div></div>');
+        $('.board-wrap').css('position', 'relative').append($overlay);
+        $status.text(reason);
+    }
+
+    function clearGameOver() {
+        isGameOver = false;
+        $('.game-over-overlay').remove();
+    }
+
+    function handleStatus(status) {
+        if (!status) return;
+        if (status.game_over) {
+            showGameOver(status.reason || 'Game Over!');
+        } else if (status.reason === 'Check!') {
+            $status.text('Check! Your turn (White)');
+        } else {
+            $status.text('Your turn (White)');
+        }
     }
 
     // ─── Move history ───
@@ -387,26 +448,24 @@
             html += '  ';
         });
         $('#moveHistory').html(html);
-        // Auto-scroll
         var el = document.getElementById('moveHistory');
         el.scrollTop = el.scrollHeight;
     }
 
     // ─── Toggle Engine ───
     $('#engineToggle button').click(function() {
-        if (isEngineThinking) return;
+        if (isEngineThinking || isGameOver) return;
         $('#engineToggle button').removeClass('active');
         $(this).addClass('active');
         useNN = $(this).data('nn') === true;
 
-        // Tell backend to clear TT for the new engine
         $.ajax({
             type: 'POST',
             url: '/switch_engine',
             contentType: 'application/json',
             data: JSON.stringify({ use_nn: useNN }),
             success: function(resp) {
-                if (resp.eval !== undefined) updateEval(resp.eval);
+                if (resp.eval) updateEval(resp.eval);
             }
         });
     });
@@ -423,8 +482,8 @@
     board = Chessboard('board', config);
 
     function onDragStart(source, piece) {
-        if (isEngineThinking) return false;
-        if (piece.search(/^b/) !== -1) return false;  // only allow white
+        if (isEngineThinking || isGameOver) return false;
+        if (piece.search(/^b/) !== -1) return false;
     }
 
     function onDrop(source, target) {
@@ -442,7 +501,8 @@
                 isEngineThinking = false;
                 if (r.error) {
                     $status.text('Illegal move! Try again.');
-                    board.position(r.fen);
+                    // Snap back to correct position (handles castling too)
+                    board.position(r.fen, false);
                     return;
                 }
 
@@ -459,20 +519,21 @@
                 }
                 renderHistory();
 
-                board.position(r.fen);
-                if (r.eval !== undefined) updateEval(r.eval);
+                // Update board — use position(fen, false) for instant update
+                // This correctly handles castling (both king+rook move at once)
+                board.position(r.fen, false);
 
-                if (r.game_over) {
-                    $status.text('Game Over!');
-                } else {
-                    $status.text('Your turn (White)');
-                }
+                if (r.eval) updateEval(r.eval);
+                handleStatus(r.status);
             },
             error: function() {
                 isEngineThinking = false;
                 $status.text('Server error.');
             }
         });
+
+        // Always snapback first — the AJAX callback will set the correct position
+        return 'snapback';
     }
 
     function onSnapEnd() { /* handled by AJAX */ }
@@ -483,12 +544,13 @@
             type: 'POST',
             url: '/newgame',
             success: function(data) {
-                board.position(data.fen);
+                clearGameOver();
+                board.position(data.fen, false);
                 moveList = [];
                 renderHistory();
                 isEngineThinking = false;
                 $status.text('Your turn (White)');
-                if (data.eval !== undefined) updateEval(data.eval);
+                if (data.eval) updateEval(data.eval);
             }
         });
     });
@@ -497,3 +559,4 @@
 </script>
 </body>
 </html>
+
