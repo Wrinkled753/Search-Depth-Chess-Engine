@@ -4,8 +4,7 @@ from engine.engine import ChessEngine
 
 fen = "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 4 4"
 board = EngineBoard.from_fen(fen)
-engine = ChessEngine(max_depth=2)
-
+engine = ChessEngine(max_depth=6)
 moves = list(board.legal_moves())
 def move_score(move: chess.Move) -> int:
     score = 0
