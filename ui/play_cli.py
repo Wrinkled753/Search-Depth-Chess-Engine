@@ -37,7 +37,7 @@ def play(use_nn: bool = False):
         else:
             # Engine turn
             print("Engine is thinking...")
-            best_move = engine.get_best_move(board)
+            best_move, _ = engine.get_best_move(board)
             if best_move:
                 print(f"Engine plays: {best_move.uci()}")
                 board.push(best_move)

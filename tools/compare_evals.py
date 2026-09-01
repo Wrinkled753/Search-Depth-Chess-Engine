@@ -43,9 +43,9 @@ def play_game(engine_white: ChessEngine, engine_black: ChessEngine, opening_name
     
     while not board.is_game_over() and move_count < MAX_MOVES_PER_GAME:
         if board.turn() == chess.WHITE:
-            best_move = engine_white.get_best_move(board)
+            best_move, _ = engine_white.get_best_move(board)
         else:
-            best_move = engine_black.get_best_move(board)
+            best_move, _ = engine_black.get_best_move(board)
             
         if best_move is None:
             break

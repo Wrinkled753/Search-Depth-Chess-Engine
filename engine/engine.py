@@ -25,12 +25,15 @@ class ChessEngine:
         else:
             self.eval_fn = heuristic_eval
 
-    def get_best_move(self, board: EngineBoard, time_limit: float | None = None) -> chess.Move | None:
+    def get_best_move(self, board: EngineBoard, time_limit: float | None = None) -> tuple[chess.Move | None, dict]:
         """
         Finds the best move using iterative deepening.
         Searches progressively deeper until the time limit is reached.
         If a search iteration is interrupted, its result is discarded
         and the last fully completed iteration's move is used.
+        
+        Returns a tuple of (best_move, search_stats).
+        search_stats contains: depth, nodes, time_s, nps
         """
         limit = time_limit if time_limit is not None else self.time_limit
         
@@ -42,6 +45,8 @@ class ChessEngine:
         
         best_move = None
         best_score = -INF
+        completed_depth = 0
+        total_nodes = 0
         
         for depth in range(1, self.max_depth + 1):
             search_info.stopped = False
@@ -53,14 +58,27 @@ class ChessEngine:
                 search_info=search_info
             )
             
+            total_nodes += search_info.nodes_searched
+            
             # If search was interrupted mid-iteration, discard this
             # incomplete result and use the previous completed depth.
             if search_info.stopped:
                 break
             
+            completed_depth = depth
             if move is not None:
                 best_move = move
                 best_score = score
+        
+        elapsed = time.time() - search_info.start_time
+        nps = int(total_nodes / elapsed) if elapsed > 0 else 0
+        
+        search_stats = {
+            "depth": completed_depth,
+            "nodes": total_nodes,
+            "time_s": round(elapsed, 2),
+            "nps": nps,
+        }
         
         # Fallback: if no move found (shouldn't happen in normal play)
         if best_move is None and not board.is_game_over():
@@ -69,4 +87,4 @@ class ChessEngine:
             except StopIteration:
                 pass
 
-        return best_move
+        return best_move, search_stats

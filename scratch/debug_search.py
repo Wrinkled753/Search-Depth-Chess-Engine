@@ -22,4 +22,4 @@ for m in moves:
     print(f"Move: {m}, Score: {score}")
     board.pop()
 
-print("Best move:", engine.get_best_move(board))
+print("Best move:", engine.get_best_move(board)[0])

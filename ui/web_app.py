@@ -109,9 +109,10 @@ def new_game():
     player_color = data.get("player_color", "white")
 
     engine_move_str = None
+    search_stats = None
     if player_color == "black":
         active_engine = nn_engine if use_nn else engine
-        best_move = active_engine.get_best_move(game_board)
+        best_move, search_stats = active_engine.get_best_move(game_board)
         if best_move:
             game_board.push(best_move)
             engine_move_str = best_move.uci()
@@ -121,7 +122,8 @@ def new_game():
         "fen": game_board.fen(), 
         "eval": eval_info, 
         "status": _game_status(game_board),
-        "engine_move": engine_move_str
+        "engine_move": engine_move_str,
+        "search_stats": search_stats
     })
 
 
@@ -182,10 +184,11 @@ def engine_move():
 
     if board.is_game_over():
         eval_info = _get_eval_score(board, use_nn)
-        return jsonify({"fen": board.fen(), "eval": eval_info, "status": _game_status(board), "engine_move": None})
+        return jsonify({"fen": board.fen(), "eval": eval_info, "status": _game_status(board),
+                        "engine_move": None, "search_stats": None})
 
     active_engine = nn_engine if use_nn else engine
-    best_move = active_engine.get_best_move(board)
+    best_move, search_stats = active_engine.get_best_move(board)
 
     if best_move:
         board.push(best_move)
@@ -197,7 +200,27 @@ def engine_move():
         "fen": board.fen(),
         "status": status,
         "engine_move": best_move.uci() if best_move else None,
-        "eval": eval_info
+        "eval": eval_info,
+        "search_stats": search_stats
+    })
+
+
+@app.route("/engine_info", methods=["GET"])
+def engine_info():
+    """Return static metadata about both engine backends."""
+    return jsonify({
+        "heuristic": {
+            "name": "Heuristic",
+            "description": "Hand-crafted evaluation",
+            "architecture": None
+        },
+        "nnue": {
+            "name": "NNUE-Inspired",
+            "description": "Neural Network evaluation (PyTorch)",
+            "architecture": "769→256→256→256→1",
+            "activation": "ReLU + Tanh",
+            "framework": "PyTorch"
+        }
     })
 
 

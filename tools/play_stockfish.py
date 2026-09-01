@@ -35,7 +35,7 @@ def play_match(our_engine: ChessEngine, sf_engine: chess.engine.SimpleEngine,
             # Our engine's turn
             engine_board._board = board.copy()
             # Suppress standard output for cleaner logs
-            best_move = our_engine.get_best_move(engine_board, time_limit=TIME_LIMIT)
+            best_move, _ = our_engine.get_best_move(engine_board, time_limit=TIME_LIMIT)
             if best_move is None:
                 print("Error: Engine returned no move.")
                 return 0.0
