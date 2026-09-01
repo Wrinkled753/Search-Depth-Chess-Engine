@@ -88,6 +88,18 @@ class EngineBoard:
         """
         return self._board.pop()
 
+    def push_null(self) -> None:
+        """
+        Push a null move (pass the turn). Used for Null Move Pruning.
+        """
+        self._board.push(chess.Move.null())
+
+    def pop_null(self) -> None:
+        """
+        Undo a null move.
+        """
+        self._board.pop()
+
     def is_checkmate(self) -> bool:
         """
         Return True if the current side to move is in checkmate.

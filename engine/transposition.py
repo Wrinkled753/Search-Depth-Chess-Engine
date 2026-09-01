@@ -5,19 +5,34 @@ class TranspositionTable:
     already been analyzed at sufficient depth.
     
     Uses a pre-allocated list with key % max_size indexing to guarantee
-    bounded memory usage.
+    bounded memory usage. Uses depth-preferred replacement strategy:
+    new entries only overwrite existing ones if they were searched to
+    equal or greater depth.
+    
+    Default size: 2^24 (~16M entries, ~1.2 GB RAM).
     """
     EXACT = 0   # Exact score
     ALPHA = 1   # Upper bound (failed low)
     BETA = 2    # Lower bound (failed high)
     
-    def __init__(self, max_size: int = 2**20):
+    def __init__(self, max_size: int = 2**24):
         self.max_size = max_size
         self.table: list = [None] * max_size
     
     def store(self, key: int, depth: int, score: float, flag: int, best_move) -> None:
-        """Store a search result in the transposition table."""
+        """
+        Store a search result in the transposition table.
+        Uses depth-preferred replacement: only overwrites if the new
+        entry has equal or greater depth than the existing one.
+        """
         index = key % self.max_size
+        existing = self.table[index]
+        
+        # Depth-preferred replacement: keep the deeper search result
+        # unless it's a different position (hash collision) or same/greater depth
+        if existing is not None and existing[0] == key and existing[1] > depth:
+            return  # Keep the deeper existing entry
+        
         self.table[index] = (key, depth, score, flag, best_move)
     
     def probe(self, key: int, depth: int, alpha: float, beta: float) -> tuple[bool, float, object]:
