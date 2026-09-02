@@ -54,6 +54,10 @@
             position: sticky;
             top: 0;
             z-index: 10;
+            transition: transform 0.3s ease-in-out;
+        }
+        .header.hidden {
+            transform: translateY(-100%);
         }
         .header h1 {
             font-size: 26px;
@@ -573,6 +577,18 @@
     var $status = $('#statusText');
     var engineMetadata = null;
     
+    // Dynamic hide-on-scroll header
+    var lastScrollY = window.scrollY;
+    var $header = $('.header');
+    $(window).on('scroll', function() {
+        if (window.scrollY > lastScrollY && window.scrollY > 50) {
+            $header.addClass('hidden');
+        } else {
+            $header.removeClass('hidden');
+        }
+        lastScrollY = window.scrollY;
+    });
+
     // Fetch static engine info on load
     $.getJSON('/engine_info', function(data) {
         engineMetadata = data;
