@@ -47,6 +47,7 @@ def _get_eval_score(board: EngineBoard, use_nn: bool) -> dict:
         start_time=time.time(),
         time_limit=2.0  # cap eval computation to 2s
     )
+    from engine.search import INF
     score, _ = negamax(board, EVAL_DEPTH, -INF, INF, active_engine.eval_fn, info)
 
     # negamax returns score from side-to-move's perspective.

@@ -1,0 +1,16 @@
+ * Serving Flask app 'web_app'
+ * Debug mode: on
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5000
+Press CTRL+C to quit
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 108-907-683
+ * Detected change in 'C:\\Users\\Emre PC\\ChessEngine-LLM\\engine\\search.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 108-907-683
+ * Detected change in 'C:\\Users\\Emre PC\\ChessEngine-LLM\\ui\\web_app.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 108-907-683

@@ -7,7 +7,7 @@ from engine.board import EngineBoard
 from engine.transposition import TranspositionTable
 
 # Constants
-INF = float('inf')
+INF = 1000000.0
 MATE_SCORE = 99999.0
 
 # Piece values for MVV-LVA move ordering and Delta Pruning
