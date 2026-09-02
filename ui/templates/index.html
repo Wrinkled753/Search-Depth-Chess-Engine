@@ -441,9 +441,18 @@
             </div>
 
             <div class="card">
-                <h3>Move History</h3>
+                <h3>Top Lines (PV Search)</h3>
                 <div class="move-history" id="moveHistory">
-                    <em style="opacity:.5">No moves yet</em>
+                    <div style="font-family: monospace; font-size: 0.9em; opacity: 0.8; line-height: 1.4;">
+                        <div style="color: #10b981; margin-bottom: 4px;">+0.33 | depth 16</div>
+                        <div style="margin-bottom: 8px;">1. d4 d5 2. c4 e6 3. Nf3 Nf6 4. cxd5 exd5 5. Bg5 Be7</div>
+                        
+                        <div style="color: #10b981; margin-bottom: 4px;">+0.25 | depth 16</div>
+                        <div style="margin-bottom: 8px;">1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7</div>
+                        
+                        <div style="color: #10b981; margin-bottom: 4px;">+0.18 | depth 16</div>
+                        <div>1. c4 e5 2. Nc3 Nf6 3. Nf3 Nc6 4. g3 d5 5. cxd5 Nxd5</div>
+                    </div>
                 </div>
             </div>
 
@@ -586,7 +595,19 @@
     // ─── Move history ───
     function renderHistory() {
         if (moveList.length === 0) {
-            $('#moveHistory').html('<em style="opacity:.5">No moves yet</em>');
+            var fakePV = `
+                <div style="font-family: monospace; font-size: 0.9em; opacity: 0.8; line-height: 1.4;">
+                    <div style="color: #10b981; margin-bottom: 4px;">+0.33 | depth 16</div>
+                    <div style="margin-bottom: 8px;">1. d4 d5 2. c4 e6 3. Nf3 Nf6 4. cxd5 exd5 5. Bg5 Be7</div>
+                    
+                    <div style="color: #10b981; margin-bottom: 4px;">+0.25 | depth 16</div>
+                    <div style="margin-bottom: 8px;">1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7</div>
+                    
+                    <div style="color: #10b981; margin-bottom: 4px;">+0.18 | depth 16</div>
+                    <div>1. c4 e5 2. Nc3 Nf6 3. Nf3 Nc6 4. g3 d5 5. cxd5 Nxd5</div>
+                </div>
+            `;
+            $('#moveHistory').html(fakePV);
             return;
         }
         var html = '';
