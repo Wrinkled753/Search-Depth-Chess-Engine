@@ -20,7 +20,7 @@ game_board = EngineBoard()
 engine = ChessEngine(max_depth=64, time_limit=1.0, use_nn=False)
 nn_engine = ChessEngine(max_depth=64, time_limit=1.0, use_nn=True)
 
-EVAL_DEPTH = 7  # Search depth for the evaluation bar (7 ply = ~3.5 moves ahead)
+EVAL_DEPTH = 4  # Reduced from 7 to prevent timeouts and artificial 0.0 scores
 
 
 def _get_eval_score(board: EngineBoard, use_nn: bool) -> dict:
@@ -45,10 +45,16 @@ def _get_eval_score(board: EngineBoard, use_nn: bool) -> dict:
     info = SearchInfo(
         tt=active_engine.tt,
         start_time=time.time(),
-        time_limit=2.0  # cap eval computation to 2s
+        time_limit=1.5  # cap eval computation
     )
+    
     from engine.search import INF
     score, _ = negamax(board, EVAL_DEPTH, -INF, INF, active_engine.eval_fn, info)
+
+    if info.stopped:
+        # If it timed out, fallback to static eval so it doesn't jump to 0.0
+        from engine.search import _side_relative_eval
+        score = _side_relative_eval(board, active_engine.eval_fn)
 
     # negamax returns score from side-to-move's perspective.
     # Flip to White's perspective for the eval bar.
