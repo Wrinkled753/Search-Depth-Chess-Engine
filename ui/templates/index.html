@@ -1,21 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ChessEngine-LLM Web UI</title>
-    
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <!-- jQuery (required for chessboard.js) -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
+
     <!-- chessboard.js CSS & JS -->
     <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
     <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
-    
+
     <style>
         :root {
             --primary: #6366F1;
@@ -32,7 +33,11 @@
             --black-advantage: #F472B6;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -56,9 +61,11 @@
             z-index: 10;
             transition: transform 0.3s ease-in-out;
         }
+
         .header.hidden {
             transform: translateY(-100%);
         }
+
         .header h1 {
             font-size: 26px;
             font-weight: 700;
@@ -66,6 +73,7 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+
         .header p {
             margin-top: 4px;
             color: var(--text-muted);
@@ -89,12 +97,14 @@
             align-items: center;
             gap: 8px;
         }
+
         .eval-bar-label {
             font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 1px;
             color: var(--text-muted);
         }
+
         .eval-bar-wrapper {
             width: 32px;
             height: 640px;
@@ -104,20 +114,23 @@
             position: relative;
             background: #1a1a2e;
         }
+
         .eval-bar-white {
             position: absolute;
             bottom: 0;
             width: 100%;
             background: linear-gradient(to top, #e2e8f0, #cbd5e1);
-            transition: height 0.6s cubic-bezier(.4,0,.2,1);
+            transition: height 0.6s cubic-bezier(.4, 0, .2, 1);
         }
+
         .eval-bar-black {
             position: absolute;
             top: 0;
             width: 100%;
             background: linear-gradient(to bottom, #1e1e2e, #334155);
-            transition: height 0.6s cubic-bezier(.4,0,.2,1);
+            transition: height 0.6s cubic-bezier(.4, 0, .2, 1);
         }
+
         .eval-bar-score {
             font-size: 14px;
             font-weight: 700;
@@ -129,9 +142,18 @@
             border: 1px solid var(--border);
             transition: color 0.3s;
         }
-        .eval-bar-score.positive { color: var(--white-advantage); }
-        .eval-bar-score.negative { color: var(--black-advantage); }
-        .eval-bar-score.neutral  { color: var(--text-muted); }
+
+        .eval-bar-score.positive {
+            color: var(--white-advantage);
+        }
+
+        .eval-bar-score.negative {
+            color: var(--black-advantage);
+        }
+
+        .eval-bar-score.neutral {
+            color: var(--text-muted);
+        }
 
         /* -------- BOARD -------- */
         .board-wrap {
@@ -142,10 +164,22 @@
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
+
         /* chessboard.js overrides */
-        .board-b72b1 { border: 2px solid var(--border) !important; border-radius: 4px; }
-        .white-1e1d7 { background-color: #E2E8F0; color: #475569; }
-        .black-3c85d { background-color: #64748B; color: #F1F5F9; }
+        .board-b72b1 {
+            border: 2px solid var(--border) !important;
+            border-radius: 4px;
+        }
+
+        .white-1e1d7 {
+            background-color: #E2E8F0;
+            color: #475569;
+        }
+
+        .black-3c85d {
+            background-color: #64748B;
+            color: #F1F5F9;
+        }
 
         /* -------- SIDEBAR -------- */
         .sidebar {
@@ -154,12 +188,14 @@
             flex-direction: column;
             gap: 16px;
         }
+
         .card {
             background: var(--surface);
             padding: 20px;
             border-radius: 12px;
             border: 1px solid var(--border);
         }
+
         .card h3 {
             font-size: 14px;
             font-weight: 600;
@@ -177,6 +213,7 @@
             overflow: hidden;
             border: 1px solid var(--border);
         }
+
         .toggle-btn button {
             flex: 1;
             padding: 10px 6px;
@@ -188,10 +225,12 @@
             font-size: 12px;
             transition: all 0.2s ease;
         }
+
         .toggle-btn button.active {
             background: var(--primary);
             color: white;
         }
+
         .toggle-btn button:hover:not(.active) {
             background: var(--surface-alt);
         }
@@ -222,15 +261,29 @@
             border-radius: 8px;
             border: 1px solid var(--border);
         }
-        .eval-detail .eval-label { font-size: 13px; color: var(--text-muted); }
+
+        .eval-detail .eval-label {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
         .eval-detail .eval-value {
             font-size: 22px;
             font-weight: 700;
             font-family: 'JetBrains Mono', 'Inter', monospace;
         }
-        .eval-detail .eval-value.positive { color: var(--white-advantage); }
-        .eval-detail .eval-value.negative { color: var(--black-advantage); }
-        .eval-detail .eval-value.neutral  { color: var(--text-muted); }
+
+        .eval-detail .eval-value.positive {
+            color: var(--white-advantage);
+        }
+
+        .eval-detail .eval-value.negative {
+            color: var(--black-advantage);
+        }
+
+        .eval-detail .eval-value.neutral {
+            color: var(--text-muted);
+        }
 
         /* Buttons */
         .btn {
@@ -249,21 +302,39 @@
             gap: 6px;
             width: 100%;
         }
-        .btn:hover { background: var(--primary-hover); }
-        .btn:active { transform: scale(0.97); }
-        .btn.danger { background: var(--danger); }
-        .btn.danger:hover { background: #DC2626; }
+
+        .btn:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn.danger {
+            background: var(--danger);
+        }
+
+        .btn.danger:hover {
+            background: #DC2626;
+        }
 
         /* Loader */
         .loader {
-            border: 2px solid rgba(255,255,255,0.15);
+            border: 2px solid rgba(255, 255, 255, 0.15);
             border-top: 2px solid white;
             border-radius: 50%;
-            width: 14px; height: 14px;
+            width: 14px;
+            height: 14px;
             animation: spin .8s linear infinite;
             display: none;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
 
         /* Move history */
         .move-history {
@@ -278,14 +349,27 @@
             color: var(--text-muted);
             line-height: 1.7;
         }
-        .move-history span.move-number { color: var(--text-muted); opacity: .6; }
-        .move-history span.white-move  { color: var(--text); }
-        .move-history span.black-move  { color: #cbd5e1; }
+
+        .move-history span.move-number {
+            color: var(--text-muted);
+            opacity: .6;
+        }
+
+        .move-history span.white-move {
+            color: var(--text);
+        }
+
+        .move-history span.black-move {
+            color: #cbd5e1;
+        }
 
         /* Game over overlay */
         .game-over-overlay {
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background: rgba(15, 23, 42, 0.85);
             display: flex;
             align-items: center;
@@ -294,6 +378,7 @@
             border-radius: 10px;
             backdrop-filter: blur(4px);
         }
+
         .game-over-text {
             font-size: 22px;
             font-weight: 700;
@@ -317,6 +402,7 @@
             grid-template-columns: 1fr 1fr;
             gap: 8px;
         }
+
         .ai-stat {
             background: var(--background);
             border: 1px solid var(--border);
@@ -326,9 +412,11 @@
             flex-direction: column;
             gap: 3px;
         }
+
         .ai-stat.full-width {
             grid-column: 1 / -1;
         }
+
         .ai-stat-label {
             font-size: 10px;
             font-weight: 600;
@@ -336,20 +424,29 @@
             letter-spacing: 0.8px;
             color: var(--text-muted);
         }
+
         .ai-stat-value {
             font-size: 15px;
             font-weight: 700;
             font-family: 'JetBrains Mono', 'Inter', monospace;
             color: var(--text);
         }
+
         .ai-stat-value .unit {
             font-size: 11px;
             font-weight: 500;
             color: var(--text-muted);
             margin-left: 2px;
         }
-        .ai-stat-value.accent { color: var(--accent); }
-        .ai-stat-value.primary { color: var(--primary); }
+
+        .ai-stat-value.accent {
+            color: var(--accent);
+        }
+
+        .ai-stat-value.primary {
+            color: var(--primary);
+        }
+
         .ai-badge {
             display: inline-block;
             background: rgba(99, 102, 241, 0.15);
@@ -360,6 +457,7 @@
             border-radius: 6px;
             border: 1px solid rgba(99, 102, 241, 0.3);
         }
+
         .tech-badges {
             display: flex;
             justify-content: center;
@@ -367,6 +465,7 @@
             margin-top: 12px;
             flex-wrap: wrap;
         }
+
         .tech-badge {
             display: flex;
             align-items: center;
@@ -378,9 +477,10 @@
             padding: 4px 12px;
             border-radius: 20px;
             border: 1px solid var(--border);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
             transition: all 0.2s;
         }
+
         .card {
             background: rgba(30, 41, 59, 0.6);
             backdrop-filter: blur(8px);
@@ -390,19 +490,22 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
             transition: transform 0.2s;
         }
+
         .card:hover {
             transform: translateY(-2px);
         }
+
         .tech-badge:hover {
             border-color: var(--primary);
             color: var(--text);
             transform: translateY(-1px);
         }
+
         .tech-badge svg {
             width: 14px;
             height: 14px;
         }
-        
+
 
         .blinking-dot {
             width: 10px;
@@ -413,31 +516,58 @@
             box-shadow: 0 0 8px var(--accent);
             animation: blink 1.5s infinite ease-in-out;
         }
-        
+
         @keyframes blink {
-            0% { opacity: 0.3; transform: scale(0.9); }
-            50% { opacity: 1; transform: scale(1.1); }
-            100% { opacity: 0.3; transform: scale(0.9); }
+            0% {
+                opacity: 0.3;
+                transform: scale(0.9);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1.1);
+            }
+
+            100% {
+                opacity: 0.3;
+                transform: scale(0.9);
+            }
         }
     </style>
 </head>
+
 <body>
 
     <div class="header">
         <h1>♟ Grandmaster-AI</h1>
         <p>Hybrid Heuristic &amp; Deep Learning Engine</p>
-        
+
         <div class="tech-badges">
             <div class="tech-badge">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#EE4C2C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l10 6-10 6-10-6z"></path><path d="M12 22l10-6v-6l-10 6-10-6v6z"></path></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="#EE4C2C" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M12 2l10 6-10 6-10-6z"></path>
+                    <path d="M12 22l10-6v-6l-10 6-10-6v6z"></path>
+                </svg>
                 PyTorch
             </div>
             <div class="tech-badge">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#3776AB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="#3776AB" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
+                    <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                    <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                    <line x1="15" y1="9" x2="15.01" y2="9"></line>
+                </svg>
                 Python
             </div>
             <div class="tech-badge">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="3" y1="9" x2="21" y2="9"></line>
+                    <line x1="9" y1="21" x2="9" y2="9"></line>
+                </svg>
                 python-chess
             </div>
         </div>
@@ -460,9 +590,11 @@
             <div class="board-wrap">
                 <div id="board" style="width:640px"></div>
             </div>
-            
-            <div class="board-controls-row" style="display: flex; gap: 16px; width: 680px;"> <!-- board width + padding -->
-                <div class="card" style="flex: 1; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; margin: 0;">
+
+            <div class="board-controls-row" style="display: flex; gap: 16px; width: 680px;">
+                <!-- board width + padding -->
+                <div class="card"
+                    style="flex: 1; padding: 16px 20px; display: flex; align-items: center; justify-content: flex-start; gap: 48px; margin: 0;">
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <label style="font-size: 13px; font-weight: 600; color: #a1a1aa;">Play as:</label>
                         <div class="toggle-btn" id="playerColorToggle">
@@ -470,14 +602,25 @@
                             <button data-color="black">Black</button>
                         </div>
                     </div>
-                    <button class="btn" id="flipBoardBtn" style="background: #3f3f46; border: 1px solid #52525b; padding: 8px 16px;">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 5px;"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    <button class="btn" id="flipBoardBtn"
+                        style="background: #3f3f46; border: 1px solid #52525b; padding: 8px 16px;">
+                        <svg width="15" height="18" fill="none" stroke="currentColor" stroke-width="2"
+                            viewBox="0 0 24 24" style="vertical-align:middle; margin-right: 5px;">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                            </path>
+                        </svg>
                         Flip
                     </button>
                 </div>
-                
-                <button class="btn danger" id="newGameBtn" style="padding: 0 24px; font-size: 15px; font-weight: bold; border-radius: 16px; box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3);">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 6px;"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+
+                <button class="btn danger" id="newGameBtn"
+                    style="padding: 0 24px; font-size: 15px; font-weight: bold; border-radius: 16px; box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3);">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                        style="vertical-align: middle; margin-right: 6px;">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
+                    </svg>
                     New Game
                 </button>
             </div>
@@ -500,10 +643,10 @@
                     <div style="font-family: monospace; font-size: 0.9em; opacity: 0.8; line-height: 1.4;">
                         <div style="color: #10b981; margin-bottom: 4px;">+0.33 | depth 16</div>
                         <div style="margin-bottom: 8px;">1. d4 d5 2. c4 e6 3. Nf3 Nf6 4. cxd5 exd5 5. Bg5 Be7</div>
-                        
+
                         <div style="color: #10b981; margin-bottom: 4px;">+0.25 | depth 16</div>
                         <div style="margin-bottom: 8px;">1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7</div>
-                        
+
                         <div style="color: #10b981; margin-bottom: 4px;">+0.18 | depth 16</div>
                         <div>1. c4 e5 2. Nc3 Nf6 3. Nf3 Nc6 4. g3 d5 5. cxd5 Nxd5</div>
                     </div>
@@ -512,7 +655,8 @@
 
             <div class="card">
                 <h3 style="display: flex; align-items: center; gap: 8px;">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                         <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
                         <rect x="9" y="9" width="6" height="6"></rect>
                         <line x1="9" y1="1" x2="9" y2="4"></line>
@@ -566,151 +710,151 @@
         </div>
     </div>
 
-<script>
-    var board = null;
-    var useNN = false;
-    var playerColor = 'white';
-    var isEngineThinking = false;
-    var isGameOver = false;
-    var moveList = [];
-    var currentSessionId = 0;
-    var $status = $('#statusText');
-    var engineMetadata = null;
-    
-    // Dynamic hide-on-scroll header
-    var lastScrollY = window.scrollY;
-    var $header = $('.header');
-    $(window).on('scroll', function() {
-        if (window.scrollY > lastScrollY && window.scrollY > 50) {
-            $header.addClass('hidden');
-        } else {
-            $header.removeClass('hidden');
-        }
-        lastScrollY = window.scrollY;
-    });
+    <script>
+        var board = null;
+        var useNN = false;
+        var playerColor = 'white';
+        var isEngineThinking = false;
+        var isGameOver = false;
+        var moveList = [];
+        var currentSessionId = 0;
+        var $status = $('#statusText');
+        var engineMetadata = null;
 
-    // Fetch static engine info on load
-    $.getJSON('/engine_info', function(data) {
-        engineMetadata = data;
-    });
-
-    function pieceTheme(piece) {
-        return 'https://chessboardjs.com/img/chesspieces/wikipedia/' + piece + '.png';
-    }
-
-    // ─── A.I. Insights update ───
-    function updateAIInsights(searchStats) {
-        // Update backend label and architecture
-        var backendLabel = useNN ? 'NNUE-Inspired' : 'Heuristic';
-        $('#aiBackend').html(backendLabel + ' <span class="ai-badge">' + (useNN ? 'Neural Net' : 'Classical') + '</span>');
-        
-        if (useNN && engineMetadata && engineMetadata.nnue) {
-            $('#aiArchRow').show();
-            $('#aiArch').text(engineMetadata.nnue.architecture + ' (' + engineMetadata.nnue.framework + ')');
-        } else {
-            $('#aiArchRow').hide();
-        }
-
-        if (!searchStats) return;
-
-        $('#aiDepth').html(searchStats.depth + '<span class="unit"> plies</span>');
-        $('#aiTime').html(searchStats.time_s + '<span class="unit"> s</span>');
-
-        var nodesStr = searchStats.nodes >= 1000000 
-            ? (searchStats.nodes / 1000000).toFixed(2) + 'M'
-            : searchStats.nodes >= 1000 
-                ? (searchStats.nodes / 1000).toFixed(1) + 'K' 
-                : searchStats.nodes.toString();
-        $('#aiNodes').text(nodesStr);
-
-        var npsStr = searchStats.nps >= 1000000 
-            ? (searchStats.nps / 1000000).toFixed(2) + 'M'
-            : searchStats.nps >= 1000 
-                ? Math.round(searchStats.nps / 1000) + 'K' 
-                : searchStats.nps.toString();
-        $('#aiNPS').html(npsStr + '<span class="unit"> N/s</span>');
-    }
-
-    // ─── Eval display helpers ───
-    function updateEval(evalInfo) {
-        if (!evalInfo) return;
-
-        var $barWhite = $('#evalBarWhite');
-        var $barBlack = $('#evalBarBlack');
-        var $barScore = $('#evalBarScore');
-
-        var score = evalInfo.score;
-        var mate  = evalInfo.mate;
-        var displayText;
-
-        if (mate !== null && mate !== undefined) {
-            // Mate score
-            if (mate === 0) {
-                displayText = '#';
+        // Dynamic hide-on-scroll header
+        var lastScrollY = window.scrollY;
+        var $header = $('.header');
+        $(window).on('scroll', function () {
+            if (window.scrollY > lastScrollY && window.scrollY > 50) {
+                $header.addClass('hidden');
             } else {
-                displayText = 'M' + Math.abs(mate);
+                $header.removeClass('hidden');
             }
-            // Full bar towards the winning side
-            var whitePct = mate >= 0 ? 98 : 2;
-            $barWhite.css('height', whitePct + '%');
-            $barBlack.css('height', (100 - whitePct) + '%');
-            var cls = mate >= 0 ? 'positive' : 'negative';
-            $barScore.text(displayText).removeClass('positive negative neutral').addClass(cls);
-        } else {
-            // Normal pawn-unit score
-            // Clamp display to ±5 for the bar (Lichess-like)
-            var clamped = Math.max(-5, Math.min(5, score));
-            var whitePct = 50 + (clamped / 5) * 50;
-            $barWhite.css('height', whitePct + '%');
-            $barBlack.css('height', (100 - whitePct) + '%');
+            lastScrollY = window.scrollY;
+        });
 
-            var sign = score > 0 ? '+' : '';
-            displayText = sign + score.toFixed(1);
+        // Fetch static engine info on load
+        $.getJSON('/engine_info', function (data) {
+            engineMetadata = data;
+        });
 
-            var cls = 'neutral';
-            if (score > 0.15)  cls = 'positive';
-            if (score < -0.15) cls = 'negative';
-
-            $barScore.text(displayText).removeClass('positive negative neutral').addClass(cls);
+        function pieceTheme(piece) {
+            return 'https://chessboardjs.com/img/chesspieces/wikipedia/' + piece + '.png';
         }
-    }
 
-    // ─── Game Over Overlay ───
-    function showGameOver(reason) {
-        isGameOver = true;
-        var $overlay = $('<div class="game-over-overlay"><div class="game-over-text">' + reason + '</div></div>');
-        $('.board-wrap').css('position', 'relative').append($overlay);
-        $status.text(reason);
-    }
+        // ─── A.I. Insights update ───
+        function updateAIInsights(searchStats) {
+            // Update backend label and architecture
+            var backendLabel = useNN ? 'NNUE-Inspired' : 'Heuristic';
+            $('#aiBackend').html(backendLabel + ' <span class="ai-badge">' + (useNN ? 'Neural Net' : 'Classical') + '</span>');
 
-    function clearGameOver() {
-        isGameOver = false;
-        $('.game-over-overlay').remove();
-    }
+            if (useNN && engineMetadata && engineMetadata.nnue) {
+                $('#aiArchRow').show();
+                $('#aiArch').text(engineMetadata.nnue.architecture + ' (' + engineMetadata.nnue.framework + ')');
+            } else {
+                $('#aiArchRow').hide();
+            }
 
-    function handleStatus(status) {
-        if (!status) return;
-        var turnText = 'Your turn (' + (playerColor === 'white' ? 'White' : 'Black') + ')';
-        if (status.game_over) {
-            showGameOver(status.reason || 'Game Over!');
-        } else if (status.reason === 'Check!') {
-            $status.text('Check! ' + turnText);
-        } else {
-            $status.text(turnText);
+            if (!searchStats) return;
+
+            $('#aiDepth').html(searchStats.depth + '<span class="unit"> plies</span>');
+            $('#aiTime').html(searchStats.time_s + '<span class="unit"> s</span>');
+
+            var nodesStr = searchStats.nodes >= 1000000
+                ? (searchStats.nodes / 1000000).toFixed(2) + 'M'
+                : searchStats.nodes >= 1000
+                    ? (searchStats.nodes / 1000).toFixed(1) + 'K'
+                    : searchStats.nodes.toString();
+            $('#aiNodes').text(nodesStr);
+
+            var npsStr = searchStats.nps >= 1000000
+                ? (searchStats.nps / 1000000).toFixed(2) + 'M'
+                : searchStats.nps >= 1000
+                    ? Math.round(searchStats.nps / 1000) + 'K'
+                    : searchStats.nps.toString();
+            $('#aiNPS').html(npsStr + '<span class="unit"> N/s</span>');
         }
-    }
 
-    // ─── Move Highlight ───
-    function highlightMove(source, target) {
-        $('#board .square-55d63').removeClass('highlight-move');
-        if (source) $('#board .square-' + source).addClass('highlight-move');
-        if (target) $('#board .square-' + target).addClass('highlight-move');
-    }
+        // ─── Eval display helpers ───
+        function updateEval(evalInfo) {
+            if (!evalInfo) return;
 
-    // ─── Move history ───
-    function renderHistory() {
-        if (moveList.length === 0) {
-            var fakePV = `
+            var $barWhite = $('#evalBarWhite');
+            var $barBlack = $('#evalBarBlack');
+            var $barScore = $('#evalBarScore');
+
+            var score = evalInfo.score;
+            var mate = evalInfo.mate;
+            var displayText;
+
+            if (mate !== null && mate !== undefined) {
+                // Mate score
+                if (mate === 0) {
+                    displayText = '#';
+                } else {
+                    displayText = 'M' + Math.abs(mate);
+                }
+                // Full bar towards the winning side
+                var whitePct = mate >= 0 ? 98 : 2;
+                $barWhite.css('height', whitePct + '%');
+                $barBlack.css('height', (100 - whitePct) + '%');
+                var cls = mate >= 0 ? 'positive' : 'negative';
+                $barScore.text(displayText).removeClass('positive negative neutral').addClass(cls);
+            } else {
+                // Normal pawn-unit score
+                // Clamp display to ±5 for the bar (Lichess-like)
+                var clamped = Math.max(-5, Math.min(5, score));
+                var whitePct = 50 + (clamped / 5) * 50;
+                $barWhite.css('height', whitePct + '%');
+                $barBlack.css('height', (100 - whitePct) + '%');
+
+                var sign = score > 0 ? '+' : '';
+                displayText = sign + score.toFixed(1);
+
+                var cls = 'neutral';
+                if (score > 0.15) cls = 'positive';
+                if (score < -0.15) cls = 'negative';
+
+                $barScore.text(displayText).removeClass('positive negative neutral').addClass(cls);
+            }
+        }
+
+        // ─── Game Over Overlay ───
+        function showGameOver(reason) {
+            isGameOver = true;
+            var $overlay = $('<div class="game-over-overlay"><div class="game-over-text">' + reason + '</div></div>');
+            $('.board-wrap').css('position', 'relative').append($overlay);
+            $status.text(reason);
+        }
+
+        function clearGameOver() {
+            isGameOver = false;
+            $('.game-over-overlay').remove();
+        }
+
+        function handleStatus(status) {
+            if (!status) return;
+            var turnText = 'Your turn (' + (playerColor === 'white' ? 'White' : 'Black') + ')';
+            if (status.game_over) {
+                showGameOver(status.reason || 'Game Over!');
+            } else if (status.reason === 'Check!') {
+                $status.text('Check! ' + turnText);
+            } else {
+                $status.text(turnText);
+            }
+        }
+
+        // ─── Move Highlight ───
+        function highlightMove(source, target) {
+            $('#board .square-55d63').removeClass('highlight-move');
+            if (source) $('#board .square-' + source).addClass('highlight-move');
+            if (target) $('#board .square-' + target).addClass('highlight-move');
+        }
+
+        // ─── Move history ───
+        function renderHistory() {
+            if (moveList.length === 0) {
+                var fakePV = `
                 <div style="font-family: monospace; font-size: 0.9em; opacity: 0.8; line-height: 1.4;">
                     <div style="color: #10b981; margin-bottom: 4px;">+0.33 | depth 16</div>
                     <div style="margin-bottom: 8px;">1. d4 d5 2. c4 e6 3. Nf3 Nf6 4. cxd5 exd5 5. Bg5 Be7</div>
@@ -722,217 +866,217 @@
                     <div>1. c4 e5 2. Nc3 Nf6 3. Nf3 Nc6 4. g3 d5 5. cxd5 Nxd5</div>
                 </div>
             `;
-            $('#moveHistory').html(fakePV);
-            return;
+                $('#moveHistory').html(fakePV);
+                return;
+            }
+            var html = '';
+            moveList.forEach(function (pair, i) {
+                html += '<span class="move-number">' + (i + 1) + '.</span> ';
+                html += '<span class="white-move">' + pair.white + '</span>';
+                if (pair.black) {
+                    html += ' <span class="black-move">' + pair.black + '</span>';
+                }
+                html += '  ';
+            });
+            $('#moveHistory').html(html);
+            var el = document.getElementById('moveHistory');
+            el.scrollTop = el.scrollHeight;
         }
-        var html = '';
-        moveList.forEach(function(pair, i) {
-            html += '<span class="move-number">' + (i+1) + '.</span> ';
-            html += '<span class="white-move">' + pair.white + '</span>';
-            if (pair.black) {
-                html += ' <span class="black-move">' + pair.black + '</span>';
-            }
-            html += '  ';
+
+        // ─── Settings Toggles & Flip ───
+        $('#playerColorToggle button').click(function () {
+            if (isEngineThinking || isGameOver) return;
+            $('#playerColorToggle button').removeClass('active');
+            $(this).addClass('active');
+            playerColor = $(this).data('color');
+            // Instantly flip the board visually to match preference
+            board.orientation(playerColor);
         });
-        $('#moveHistory').html(html);
-        var el = document.getElementById('moveHistory');
-        el.scrollTop = el.scrollHeight;
-    }
 
-    // ─── Settings Toggles & Flip ───
-    $('#playerColorToggle button').click(function() {
-        if (isEngineThinking || isGameOver) return;
-        $('#playerColorToggle button').removeClass('active');
-        $(this).addClass('active');
-        playerColor = $(this).data('color');
-        // Instantly flip the board visually to match preference
-        board.orientation(playerColor);
-    });
-
-    $('#flipBoardBtn').click(function() {
-        board.flip();
-    });
-
-    $('#engineToggle button').click(function() {
-        if (isEngineThinking || isGameOver) return;
-        $('#engineToggle button').removeClass('active');
-        $(this).addClass('active');
-        useNN = $(this).data('nn') === true;
-
-        $.ajax({
-            type: 'POST',
-            url: '/switch_engine',
-            contentType: 'application/json',
-            data: JSON.stringify({ use_nn: useNN }),
-            success: function(resp) {
-                if (resp.eval) updateEval(resp.eval);
-                updateAIInsights(null);
-            }
+        $('#flipBoardBtn').click(function () {
+            board.flip();
         });
-    });
 
-    // ─── Board config ───
-    var config = {
-        draggable: true,
-        position: 'start',
-        pieceTheme: pieceTheme,
-        onDragStart: onDragStart,
-        onDrop: onDrop,
-        onSnapEnd: onSnapEnd
-    };
-    board = Chessboard('board', config);
+        $('#engineToggle button').click(function () {
+            if (isEngineThinking || isGameOver) return;
+            $('#engineToggle button').removeClass('active');
+            $(this).addClass('active');
+            useNN = $(this).data('nn') === true;
 
-    function onDragStart(source, piece) {
-        if (isEngineThinking || isGameOver) return false;
-        if (playerColor === 'white' && piece.search(/^b/) !== -1) return false;
-        if (playerColor === 'black' && piece.search(/^w/) !== -1) return false;
-    }
+            $.ajax({
+                type: 'POST',
+                url: '/switch_engine',
+                contentType: 'application/json',
+                data: JSON.stringify({ use_nn: useNN }),
+                success: function (resp) {
+                    if (resp.eval) updateEval(resp.eval);
+                    updateAIInsights(null);
+                }
+            });
+        });
 
-    function onDrop(source, target) {
-        if (source === target) return 'snapback';
+        // ─── Board config ───
+        var config = {
+            draggable: true,
+            position: 'start',
+            pieceTheme: pieceTheme,
+            onDragStart: onDragStart,
+            onDrop: onDrop,
+            onSnapEnd: onSnapEnd
+        };
+        board = Chessboard('board', config);
 
-        highlightMove(source, target);
+        function onDragStart(source, piece) {
+            if (isEngineThinking || isGameOver) return false;
+            if (playerColor === 'white' && piece.search(/^b/) !== -1) return false;
+            if (playerColor === 'black' && piece.search(/^w/) !== -1) return false;
+        }
 
-        isEngineThinking = true;
-        $status.html('Engine is thinking… <div class="loader" style="display:inline-block;margin-bottom:-3px"></div>');
-        
-        var mySessionId = currentSessionId;
+        function onDrop(source, target) {
+            if (source === target) return 'snapback';
 
-        // 1. Send Human Move
-        $.ajax({
-            type: 'POST',
-            url: '/human_move',
-            contentType: 'application/json',
-            data: JSON.stringify({ source: source, target: target, use_nn: useNN }),
-            success: function(r) {
-                if (mySessionId !== currentSessionId) return; // Abort if game was reset
-                
-                if (r.error) {
-                    isEngineThinking = false;
-                    $status.text('Illegal move! Try again.');
+            highlightMove(source, target);
+
+            isEngineThinking = true;
+            $status.html('Engine is thinking… <div class="loader" style="display:inline-block;margin-bottom:-3px"></div>');
+
+            var mySessionId = currentSessionId;
+
+            // 1. Send Human Move
+            $.ajax({
+                type: 'POST',
+                url: '/human_move',
+                contentType: 'application/json',
+                data: JSON.stringify({ source: source, target: target, use_nn: useNN }),
+                success: function (r) {
+                    if (mySessionId !== currentSessionId) return; // Abort if game was reset
+
+                    if (r.error) {
+                        isEngineThinking = false;
+                        $status.text('Illegal move! Try again.');
+                        board.position(r.fen, false);
+                        highlightMove(null, null);
+                        return;
+                    }
+
+                    // Human move was legal, update board instantly (fixes castling, en passant, promotion UI)
                     board.position(r.fen, false);
-                    highlightMove(null, null);
-                    return;
-                }
 
-                // Human move was legal, update board instantly (fixes castling, en passant, promotion UI)
-                board.position(r.fen, false);
-
-                // Record human move in history
-                var humanUci = source + target;
-                if (playerColor === 'white') {
-                    var currentPair = moveList[moveList.length - 1];
-                    if (!currentPair || currentPair.black) {
-                        moveList.push({ white: humanUci, black: null });
-                    }
-                } else {
-                    var currentPair = moveList[moveList.length - 1];
-                    if (currentPair) {
-                        currentPair.black = humanUci;
-                    }
-                }
-                renderHistory();
-                
-                if (r.eval) updateEval(r.eval);
-                handleStatus(r.status);
-
-                if (r.status && r.status.game_over) {
-                    isEngineThinking = false;
-                    return;
-                }
-
-                // 2. Request Engine Move
-                $.ajax({
-                    type: 'POST',
-                    url: '/engine_move',
-                    contentType: 'application/json',
-                    data: JSON.stringify({ use_nn: useNN }),
-                    success: function(er) {
-                        if (mySessionId !== currentSessionId) return;
-                        
-                        isEngineThinking = false;
-                        
-                        if (er.engine_move) {
-                            if (playerColor === 'white') {
-                                moveList[moveList.length - 1].black = er.engine_move;
-                            } else {
-                                moveList.push({ white: er.engine_move, black: null });
-                            }
-                            
-                            var engineSource = er.engine_move.substring(0, 2);
-                            var engineTarget = er.engine_move.substring(2, 4);
-                            highlightMove(engineSource, engineTarget);
+                    // Record human move in history
+                    var humanUci = source + target;
+                    if (playerColor === 'white') {
+                        var currentPair = moveList[moveList.length - 1];
+                        if (!currentPair || currentPair.black) {
+                            moveList.push({ white: humanUci, black: null });
                         }
-                        
-                        renderHistory();
-                        
-                        // Update board WITH animation for engine move
-                        board.position(er.fen, true);
-
-                        if (er.eval) updateEval(er.eval);
-                        handleStatus(er.status);
-                        updateAIInsights(er.search_stats);
-                    },
-                    error: function() {
-                        if (mySessionId !== currentSessionId) return;
-                        isEngineThinking = false;
-                        $status.text('Server error during engine move.');
+                    } else {
+                        var currentPair = moveList[moveList.length - 1];
+                        if (currentPair) {
+                            currentPair.black = humanUci;
+                        }
                     }
-                });
-            },
-            error: function() {
-                if (mySessionId !== currentSessionId) return;
-                isEngineThinking = false;
-                $status.text('Server error during human move.');
-            }
-        });
-    }
-
-    function onSnapEnd() { /* handled by AJAX */ }
-
-    // ─── New Game ───
-    $('#newGameBtn').click(function() {
-        if ($status.text().includes('Starting new game')) return; // Prevent double clicks
-
-        currentSessionId++; // Invalidate any pending engine moves
-        isEngineThinking = true;
-        clearGameOver();
-        board.position('start', false);
-        moveList = [];
-        renderHistory();
-        $status.html('Starting new game… <div class="loader" style="display:inline-block;margin-bottom:-3px"></div>');
-
-        $.ajax({
-            type: 'POST',
-            url: '/newgame',
-            contentType: 'application/json',
-            data: JSON.stringify({ use_nn: useNN, player_color: playerColor }),
-            success: function(data) {
-                isEngineThinking = false;
-                board.orientation(playerColor);
-                if (data.engine_move) {
-                    moveList.push({ white: data.engine_move, black: null });
-                    var engineSource = data.engine_move.substring(0, 2);
-                    var engineTarget = data.engine_move.substring(2, 4);
-                    highlightMove(engineSource, engineTarget);
                     renderHistory();
-                } else {
-                    highlightMove(null, null);
+
+                    if (r.eval) updateEval(r.eval);
+                    handleStatus(r.status);
+
+                    if (r.status && r.status.game_over) {
+                        isEngineThinking = false;
+                        return;
+                    }
+
+                    // 2. Request Engine Move
+                    $.ajax({
+                        type: 'POST',
+                        url: '/engine_move',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ use_nn: useNN }),
+                        success: function (er) {
+                            if (mySessionId !== currentSessionId) return;
+
+                            isEngineThinking = false;
+
+                            if (er.engine_move) {
+                                if (playerColor === 'white') {
+                                    moveList[moveList.length - 1].black = er.engine_move;
+                                } else {
+                                    moveList.push({ white: er.engine_move, black: null });
+                                }
+
+                                var engineSource = er.engine_move.substring(0, 2);
+                                var engineTarget = er.engine_move.substring(2, 4);
+                                highlightMove(engineSource, engineTarget);
+                            }
+
+                            renderHistory();
+
+                            // Update board WITH animation for engine move
+                            board.position(er.fen, true);
+
+                            if (er.eval) updateEval(er.eval);
+                            handleStatus(er.status);
+                            updateAIInsights(er.search_stats);
+                        },
+                        error: function () {
+                            if (mySessionId !== currentSessionId) return;
+                            isEngineThinking = false;
+                            $status.text('Server error during engine move.');
+                        }
+                    });
+                },
+                error: function () {
+                    if (mySessionId !== currentSessionId) return;
+                    isEngineThinking = false;
+                    $status.text('Server error during human move.');
                 }
-                board.position(data.fen, !!data.engine_move);
-                $status.text('Your turn (' + (playerColor === 'white' ? 'White' : 'Black') + ')');
-                if (data.eval) updateEval(data.eval);
-                updateAIInsights(data.search_stats);
-            },
-            error: function() {
-                isEngineThinking = false;
-                $status.text('Error starting new game.');
-            }
+            });
+        }
+
+        function onSnapEnd() { /* handled by AJAX */ }
+
+        // ─── New Game ───
+        $('#newGameBtn').click(function () {
+            if ($status.text().includes('Starting new game')) return; // Prevent double clicks
+
+            currentSessionId++; // Invalidate any pending engine moves
+            isEngineThinking = true;
+            clearGameOver();
+            board.position('start', false);
+            moveList = [];
+            renderHistory();
+            $status.html('Starting new game… <div class="loader" style="display:inline-block;margin-bottom:-3px"></div>');
+
+            $.ajax({
+                type: 'POST',
+                url: '/newgame',
+                contentType: 'application/json',
+                data: JSON.stringify({ use_nn: useNN, player_color: playerColor }),
+                success: function (data) {
+                    isEngineThinking = false;
+                    board.orientation(playerColor);
+                    if (data.engine_move) {
+                        moveList.push({ white: data.engine_move, black: null });
+                        var engineSource = data.engine_move.substring(0, 2);
+                        var engineTarget = data.engine_move.substring(2, 4);
+                        highlightMove(engineSource, engineTarget);
+                        renderHistory();
+                    } else {
+                        highlightMove(null, null);
+                    }
+                    board.position(data.fen, !!data.engine_move);
+                    $status.text('Your turn (' + (playerColor === 'white' ? 'White' : 'Black') + ')');
+                    if (data.eval) updateEval(data.eval);
+                    updateAIInsights(data.search_stats);
+                },
+                error: function () {
+                    isEngineThinking = false;
+                    $status.text('Error starting new game.');
+                }
+            });
         });
-    });
 
-    $(window).resize(board.resize);
-</script>
+        $(window).resize(board.resize);
+    </script>
 </body>
-</html>
 
+</html>
