@@ -73,7 +73,7 @@ graph TD
 | **Null Move Pruning (NMP)** | Drastically reduces search space by passing a turn in extremely good positions |
 | **Late Move Reductions (LMR)** | Reduces search depth for unpromising quiet moves |
 | **MVV-LVA & Killer Moves** | Most Valuable Victim – Least Valuable Attacker prioritization and quiet move sorting |
-| **Low-Latency PyTorch Inference** | NNUE evaluation optimized for tree search using CPU-only execution, zero-copy memory sharing, and gradient-free (`@torch.no_grad()`) inference to eliminate GPU latency bottlenecks |
+| **Low-Latency NumPy Inference** | NNUE evaluation optimized for tree search using a manual NumPy forward pass, completely eliminating PyTorch dispatch overhead for `batch=1` execution |
 | **Web UI** | Glassmorphism design with live evaluation bar, Top Lines (PV) history, and real-time A.I. insights |
 | **Stockfish Benchmark** | Tournament script against calibrated Stockfish for Elo estimation |
 
@@ -189,7 +189,8 @@ Input (769) → Linear(256) → ReLU → Linear(256) → ReLU → Linear(256) �
 - Loss: MSE, Optimizer: Adam, Best validation loss: ~0.12
 
 ### Search Performance
-The combination of NMP, LMR, Transposition Tables, and MVV-LVA move ordering allows the engine to consistently reach **6+ plies depth** averaging **18,000+ Nodes/sec** within a strict 1-second time limit per move.
+The combination of NMP, LMR, Transposition Tables, and MVV-LVA move ordering allows the heuristic engine to reach **6+ plies depth** averaging **40,000+ Nodes/sec**. The NNUE evaluator, optimized with a custom NumPy forward pass, averages **38,000+ inferences/sec**, enabling it to search deeply within strict time limits.
+The Web UI features an **inverse Tanh scaling** for the NNUE model, ensuring the evaluation bar accurately reflects centipawn advantages just like a traditional engine.
 
 ---
 
