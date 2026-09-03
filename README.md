@@ -73,8 +73,8 @@ graph TD
 | **Null Move Pruning (NMP)** | Drastically reduces search space by passing a turn in extremely good positions |
 | **Late Move Reductions (LMR)** | Reduces search depth for unpromising quiet moves |
 | **MVV-LVA & Killer Moves** | Most Valuable Victim – Least Valuable Attacker prioritization and quiet move sorting |
-| **Low-Latency PyTorch Inference** | NNUE evaluation optimized for tree search using CPU-bound execution and gradient-free (`@torch.no_grad()`) inference to eliminate GPU latency bottlenecks |
-| **Web UI** | Drag-and-drop board with live evaluation bar, PV (Top Lines) history, and real-time engine stats |
+| **Low-Latency PyTorch Inference** | NNUE evaluation optimized for tree search using CPU-only execution, zero-copy memory sharing, and gradient-free (`@torch.no_grad()`) inference to eliminate GPU latency bottlenecks |
+| **Web UI** | Glassmorphism design with live evaluation bar, Top Lines (PV) history, and real-time A.I. insights |
 | **Stockfish Benchmark** | Tournament script against calibrated Stockfish for Elo estimation |
 
 ---
@@ -83,7 +83,7 @@ graph TD
 
 ### Prerequisites
 - Python 3.10+
-- CUDA-enabled GPU (Highly Recommended for NNUE evaluation)
+- CUDA-enabled GPU (Highly Recommended for **training** the NNUE model, but inference is purely CPU-optimized)
 - 32 GB RAM (Recommended for large Transposition Tables)
 - [Stockfish](https://stockfishchess.org/download/) (optional, for Elo benchmarking)
 
@@ -211,7 +211,7 @@ Grandmaster-AI/
 │   ├── evaluate.py         # Hand-crafted heuristic evaluation
 │   ├── search.py           # Negamax, quiescence, move ordering, NMP, LMR
 │   ├── engine.py           # Main engine with iterative deepening
-│   ├── nnue_eval.py        # NNUE-Inspired PyTorch evaluation wrapper (CUDA optimized)
+│   ├── nnue_eval.py        # NNUE-Inspired PyTorch evaluation wrapper (CPU-optimized, zero-copy)
 │   └── transposition.py    # Fixed-size transposition table (16M entries)
 ├── training/
 │   ├── model.py            # ChessEvalNet architecture definition
