@@ -91,7 +91,7 @@ graph TD
 
 ```bash
 # Clone the repository
-git clone [https://github.com/Wrinkled753/Grandmaster-AI.git](https://github.com/Wrinkled753/Grandmaster-AI.git)
+git clone [https://github.com/EmreErdogan09/Grandmaster-AI.git](https://github.com/EmreErdogan09/Grandmaster-AI.git)
 cd Grandmaster-AI
 
 # Install dependencies
