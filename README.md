@@ -73,7 +73,7 @@ graph TD
 | **Null Move Pruning (NMP)** | Drastically reduces search space by passing a turn in extremely good positions |
 | **Late Move Reductions (LMR)** | Reduces search depth for unpromising quiet moves |
 | **MVV-LVA & Killer Moves** | Most Valuable Victim – Least Valuable Attacker prioritization and quiet move sorting |
-| **Hardware-Accelerated Inference** | PyTorch model optimized via TorchScript and pre-allocated tensors for maximum CUDA throughput (RTX 4050 optimized) |
+| **Low-Latency PyTorch Inference** | NNUE evaluation optimized for tree search using CPU-bound execution and gradient-free (`@torch.no_grad()`) inference to eliminate GPU latency bottlenecks |
 | **Web UI** | Drag-and-drop board with live evaluation bar, PV (Top Lines) history, and real-time engine stats |
 | **Stockfish Benchmark** | Tournament script against calibrated Stockfish for Elo estimation |
 
