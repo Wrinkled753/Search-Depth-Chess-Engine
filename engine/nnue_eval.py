@@ -19,30 +19,23 @@ class NNUEEvaluator:
     """
     Neural network-based position evaluator.
     Wraps the trained ChessEvalNet model and provides a callable interface.
-    Optimized with TorchScript, pre-allocated tensors, and piece_map iteration.
+    Uses CPU-only inference with pre-allocated tensors and piece_map iteration.
     """
     
     def __init__(self, model_path: str = "models/eval_net.pt", hidden_size: int = 256, num_hidden_layers: int = 3):
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cpu")
         model = ChessEvalNet(hidden_size=hidden_size, num_hidden_layers=num_hidden_layers)
         model.load_state_dict(torch.load(model_path, map_location=self.device, weights_only=True))
         model.to(self.device)
         model.eval()
         
-        # TorchScript tracing for faster inference
-        example_input = torch.zeros((1, 769), dtype=torch.float32, device=self.device)
-        self.model = torch.jit.trace(model, example_input)
+        self.model = model
         
-        # Pre-allocated buffers
+        # Pre-allocated buffers (CPU only)
         self.features_np = np.zeros(769, dtype=np.float32)
-        # Using a pinned tensor for fast CPU->GPU transfer if CUDA is available
-        if self.device.type == 'cuda':
-            self.features_cpu = torch.from_numpy(self.features_np).pin_memory()
-        else:
-            self.features_cpu = torch.from_numpy(self.features_np)
-            
-        self.features_gpu = torch.zeros((1, 769), dtype=torch.float32, device=self.device)
+        self.features_tensor = torch.zeros((1, 769), dtype=torch.float32)
     
+    @torch.no_grad()
     def __call__(self, board: EngineBoard) -> float:
         """
         Evaluate a board position using the neural network.
@@ -57,10 +50,8 @@ class NNUEEvaluator:
             
         self.features_np[768] = 1.0 if board._board.turn == chess.WHITE else 0.0
         
-        # Fast transfer to GPU and inference
-        self.features_gpu[0].copy_(self.features_cpu, non_blocking=True)
-        
-        with torch.no_grad():
-            score = self.model(self.features_gpu).item()
+        # Copy numpy array into pre-allocated tensor and run inference
+        self.features_tensor[0] = torch.from_numpy(self.features_np)
+        score = self.model(self.features_tensor).item()
         
         return score
