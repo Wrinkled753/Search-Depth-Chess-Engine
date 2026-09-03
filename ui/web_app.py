@@ -18,7 +18,7 @@ app = Flask(__name__)
 # Pre-load both engines at startup so toggling is instant
 game_board = EngineBoard()
 engine = ChessEngine(max_depth=64, time_limit=1.0, use_nn=False)
-nn_engine = ChessEngine(max_depth=64, time_limit=1.0, use_nn=True)
+nn_engine = ChessEngine(max_depth=64, time_limit=5.0, use_nn=True)
 
 EVAL_DEPTH = 4  # Reduced from 7 to prevent timeouts and artificial 0.0 scores
 
