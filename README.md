@@ -6,9 +6,9 @@ A **hybrid chess engine** built from scratch in Python, featuring both a hand-cr
 
 ---
 
-## 🎯 Motivation
+## Motivation
 
-Developed as an portfolio project before starting my 3rd year of Computer Engineering, this project explores how modern chess engines work by building one layer by layer:
+Developed as a portfolio project before starting my 3rd year of Computer Engineering, this project explores how modern chess engines work by building one layer by layer:
 
 1. **Board representation** — wrapping `python-chess` for a clean API.
 2. **Hand-crafted evaluation** — material counting + piece-square tables.
@@ -21,7 +21,7 @@ The goal is an educational, self-contained codebase that demonstrates the full p
 
 ---
 
-## 🏗️ Architecture
+##  Architecture
 
 ```mermaid
 graph TD
@@ -63,7 +63,7 @@ graph TD
     NEG -->|eval_fn| NN
     DL --> PP --> TR --> NN
 ```
-## ⚡ Key Features
+##  Key Features
 
 | Feature | Description |
 |---------|-------------|
@@ -79,7 +79,7 @@ graph TD
 
 ---
 
-## 📦 Installation
+##  Installation
 
 ### Prerequisites
 - Python 3.10+
@@ -115,7 +115,7 @@ python training/train.py
 
 ---
 
-## 🚀 Usage
+##  Usage
 
 ### Web UI (Recommended)
 
@@ -159,7 +159,7 @@ Measures nodes searched at fixed depths and maximum depth reached within time li
 
 ---
 
-## 🧪 Testing
+##  Testing
 
 ```bash
 pytest tests/ -v
@@ -173,7 +173,7 @@ The test suite includes:
 
 ---
 
-## 📊 Results
+##  Results
 
 ### Board Encoding
 Each position is encoded as a **769-bit** feature vector:
@@ -194,7 +194,7 @@ The Web UI features an **inverse Tanh scaling** for the NNUE model, ensuring the
 
 ---
 
-## 🔮 Future Work
+##  Future Work
 
 - **Self-Play Reinforcement Learning** — use the engine to generate training games and iteratively improve the NN evaluation through self-play.
 - **Lichess Bot API Integration** — deploy the engine as a playable bot on [Lichess](https://lichess.org/api#tag/Bot).
