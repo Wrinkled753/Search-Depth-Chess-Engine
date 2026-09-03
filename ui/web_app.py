@@ -74,9 +74,16 @@ def _get_eval_score(board: EngineBoard, use_nn: bool) -> dict:
                 mate_in = -1
         return {"score": score, "mate": mate_in}
 
-    # Convert centipawn score to pawn units for heuristic eval
+    # Convert scores to pawn units for the evaluation bar
     if not use_nn:
         score = score / 100.0
+    else:
+        # NNUE outputs win probability [-1, 1] via tanh(cp/400).
+        # We need to invert this to get pawn units.
+        import math
+        # Clip to avoid math domain error at exactly 1.0 or -1.0
+        clipped_score = max(-0.999, min(0.999, score))
+        score = 4.0 * math.atanh(clipped_score)
 
     return {"score": round(score, 2), "mate": None}
 

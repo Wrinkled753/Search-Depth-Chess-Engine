@@ -18,24 +18,40 @@ PIECE_TO_IDX = {
 class NNUEEvaluator:
     """
     Neural network-based position evaluator.
-    Wraps the trained ChessEvalNet model and provides a callable interface.
-    Uses CPU-only inference with shared numpy/tensor memory (zero-copy).
+    Wraps the trained ChessEvalNet model but uses a pure NumPy forward pass 
+    for extremely fast batch=1 inference (eliminates PyTorch dispatch overhead).
     """
     
     def __init__(self, model_path: str = "models/eval_net.pt", hidden_size: int = 256, num_hidden_layers: int = 3):
-        self.device = torch.device("cpu")
+        # Load weights using PyTorch
+        device = torch.device("cpu")
         model = ChessEvalNet(hidden_size=hidden_size, num_hidden_layers=num_hidden_layers)
-        model.load_state_dict(torch.load(model_path, map_location=self.device, weights_only=True))
-        model.to(self.device)
+        model.load_state_dict(torch.load(model_path, map_location=device, weights_only=True))
         model.eval()
         
-        self.model = model
+        # Extract weights and biases to numpy arrays for manual forward pass
+        # The model is an nn.Sequential: Linear, ReLU, Linear, ReLU, Linear, ReLU, Linear, Tanh
+        layers = list(model.model.children())
         
-        # Shared memory buffer: numpy array and torch tensor point to same data
+        # Layer 1
+        self.W1 = layers[0].weight.detach().numpy()
+        self.b1 = layers[0].bias.detach().numpy()
+        
+        # Layer 2
+        self.W2 = layers[2].weight.detach().numpy()
+        self.b2 = layers[2].bias.detach().numpy()
+        
+        # Layer 3
+        self.W3 = layers[4].weight.detach().numpy()
+        self.b3 = layers[4].bias.detach().numpy()
+        
+        # Layer 4 (Output)
+        self.W4 = layers[6].weight.detach().numpy()
+        self.b4 = layers[6].bias.detach().numpy()
+        
+        # Shared memory buffer for encoding
         self._buf = np.zeros(769, dtype=np.float32)
-        self._tensor = torch.from_numpy(self._buf).unsqueeze(0)  # shape (1, 769), shares memory
     
-    @torch.no_grad()
     def __call__(self, board: EngineBoard) -> float:
         """
         Evaluate a board position using the neural network.
@@ -49,7 +65,23 @@ class NNUEEvaluator:
             
         buf[768] = 1.0 if board._board.turn == chess.WHITE else 0.0
         
-        # No copy needed — tensor shares memory with numpy buffer
-        return self.model(self._tensor).item()
+        # Manual numpy forward pass (much faster for single inference)
+        # Layer 1
+        h = np.dot(self.W1, buf) + self.b1
+        h = np.maximum(h, 0) # ReLU
+        
+        # Layer 2
+        h = np.dot(self.W2, h) + self.b2
+        h = np.maximum(h, 0) # ReLU
+        
+        # Layer 3
+        h = np.dot(self.W3, h) + self.b3
+        h = np.maximum(h, 0) # ReLU
+        
+        # Layer 4
+        h = np.dot(self.W4, h) + self.b4
+        
+        # Output Activation
+        return float(np.tanh(h[0]))
 
 
